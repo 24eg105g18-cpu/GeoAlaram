@@ -1,0 +1,12 @@
+{
+  "name": "geoalaram",
+  "version": "1.0.0",
+  "description": "Geo-based Alarm Management Application",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
