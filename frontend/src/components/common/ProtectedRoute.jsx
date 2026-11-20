@@ -8,10 +8,13 @@ export const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#0B1020] text-[#F8FAFC]">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-600">Verifying session...</p>
+          <div className="relative w-14 h-14">
+            <div className="w-14 h-14 rounded-full border-4 border-purple-500/20 border-t-[#3B82F6] border-r-[#8B5CF6] animate-spin"></div>
+            <div className="absolute inset-0 rounded-full blur-md bg-gradient-to-tr from-[#3B82F6]/20 to-[#8B5CF6]/20 animate-pulse"></div>
+          </div>
+          <p className="text-sm font-medium text-slate-400 tracking-wide">Verifying session...</p>
         </div>
       </div>
     );

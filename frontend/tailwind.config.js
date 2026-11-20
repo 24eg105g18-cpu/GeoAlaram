@@ -7,6 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
+        dark: {
+          bg: '#0B1020',
+          card: '#151C2E',
+          elevated: '#1E273E',
+          border: '#2A364F',
+        },
+        accent: {
+          blue: '#3B82F6',
+          purple: '#8B5CF6',
+        },
+        text: {
+          primary: '#F8FAFC',
+          secondary: '#94A3B8',
+          muted: '#64748B',
+        },
         navy: {
           50: '#f0f4f8',
           100: '#d9e2ec',

@@ -12,18 +12,18 @@ import {
   Compass,
   AlertCircle,
   RefreshCw,
-  LogOut,
-  User,
   Radio,
   ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTracking } from '../context/TrackingContext';
 import { alarmService } from '../services/alarmService';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 import TrackingHud from '../components/tracking/TrackingHud';
 
 export const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { resetAlarmTriggerLock, isTracking, startTracking } = useTracking();
   const navigate = useNavigate();
 
@@ -102,78 +102,52 @@ export const DashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#0B1020] text-[#F8FAFC] flex flex-col font-sans selection:bg-[#3B82F6] selection:text-white">
       {/* Top Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-navy-900 to-brand-600 flex items-center justify-center text-white shadow-sm">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-navy-950 font-sans">
-                Geo<span className="text-brand-600">Alarm</span>
-              </span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2.5 px-3 py-1.5 bg-slate-100 rounded-full">
-                <div className="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <span className="text-xs font-semibold text-slate-800">
-                  {user?.name || 'Traveller'}
-                </span>
-              </div>
-
-              <button
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-                className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors"
-                title="Log Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome Section */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-navy-900 via-navy-800 to-navy-950 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
-          <div>
-            <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-white/10 text-brand-300 text-xs font-medium mb-3">
-              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span>Smart Travel Command Center</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Welcome back, {user?.name || 'Traveller'}!
-            </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-xl">
-              Monitor your active alarms or create a new geofenced wake-up boundary for your upcoming trip.
-            </p>
-          </div>
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#151C2E] via-[#1A233A] to-[#151C2E] rounded-3xl p-6 sm:p-8 border border-[#2A364F] shadow-2xl shadow-black/30">
+          {/* Subtle Ambient Radial Glow */}
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-gradient-to-br from-[#3B82F6]/15 to-[#8B5CF6]/15 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="flex items-center space-x-3">
-            <Link
-              to="/alarms/create"
-              className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-md transition-all duration-150 transform hover:-translate-y-0.5"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              <span>Create New Alarm</span>
-            </Link>
-            <button
-              onClick={fetchAlarms}
-              disabled={isLoading}
-              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors"
-              title="Refresh Alarms"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#1E273E] border border-[#2A364F] text-xs font-semibold text-[#3B82F6] shadow-sm">
+                <Radio className="w-3.5 h-3.5 text-[#22C55E] animate-pulse" />
+                <span>Smart Travel Command Center</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#F8FAFC]">
+                Welcome back,{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3B82F6] via-indigo-400 to-[#8B5CF6]">
+                  {user?.name || 'Traveller'}
+                </span>
+                !
+              </h1>
+              <p className="text-[#94A3B8] text-sm max-w-xl leading-relaxed">
+                Monitor your active geofences in real time or configure a new destination alarm for your journey.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-3 flex-shrink-0">
+              <Link
+                to="/alarms/create"
+                className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:from-blue-500 hover:to-purple-500 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-purple-500/30 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                <span>Create New Alarm</span>
+              </Link>
+              <button
+                onClick={fetchAlarms}
+                disabled={isLoading}
+                className="p-3 bg-[#1E273E] hover:bg-[#2A364F] border border-[#2A364F] text-[#F8FAFC] rounded-xl transition-all shadow-sm disabled:opacity-50 hover:border-slate-600"
+                title="Refresh Alarms"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#3B82F6]' : 'text-slate-300'}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -182,83 +156,107 @@ export const DashboardPage = () => {
 
         {/* Action / Error Alerts */}
         {actionSuccess && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center space-x-2 animate-fadeIn">
-            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <div className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-sm flex items-center space-x-2.5 animate-fadeIn shadow-sm">
+            <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             <span className="font-medium">{actionSuccess}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+          <div className="p-4 rounded-xl bg-rose-950/50 border border-rose-500/30 text-rose-300 text-sm flex items-center space-x-2.5 shadow-sm">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             <span className="font-medium">{error}</span>
           </div>
         )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          {/* Card 1: Total Alarms */}
+          <div className="bg-[#151C2E] p-5 sm:p-6 rounded-2xl border border-[#2A364F] shadow-lg shadow-black/20 hover:border-[#3B82F6]/50 transition-all duration-200 hover:-translate-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Alarms</span>
-              <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+              <span className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Total Alarms
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-[#1E273E] border border-[#2A364F] text-[#3B82F6] flex items-center justify-center shadow-inner">
                 <Bell className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-navy-950 mt-3">{stats.total}</p>
-            <p className="text-xs text-slate-400 mt-1">Configured destinations</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFC] mt-3 tracking-tight">
+              {stats.total}
+            </p>
+            <p className="text-xs text-[#94A3B8] mt-1">Configured destinations</p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          {/* Card 2: Active Alarms */}
+          <div className="bg-[#151C2E] p-5 sm:p-6 rounded-2xl border border-[#2A364F] shadow-lg shadow-black/20 hover:border-emerald-500/50 transition-all duration-200 hover:-translate-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Active Alarms</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1.5"></span>
+                Active Alarms
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shadow-inner">
                 <Compass className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-3">{stats.active}</p>
-            <p className="text-xs text-slate-400 mt-1">Currently armed & tracking</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-3 tracking-tight">
+              {stats.active}
+            </p>
+            <p className="text-xs text-[#94A3B8] mt-1">Currently armed & tracking</p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          {/* Card 3: Paused Alarms */}
+          <div className="bg-[#151C2E] p-5 sm:p-6 rounded-2xl border border-[#2A364F] shadow-lg shadow-black/20 hover:border-amber-500/50 transition-all duration-200 hover:-translate-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Paused Alarms</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
+                Paused Alarms
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-amber-950/50 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-inner">
                 <Pause className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-3">{stats.paused}</p>
-            <p className="text-xs text-slate-400 mt-1">Temporarily muted</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-3 tracking-tight">
+              {stats.paused}
+            </p>
+            <p className="text-xs text-[#94A3B8] mt-1">Temporarily muted</p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          {/* Card 4: Completed Alarms */}
+          <div className="bg-[#151C2E] p-5 sm:p-6 rounded-2xl border border-[#2A364F] shadow-lg shadow-black/20 hover:border-[#8B5CF6]/50 transition-all duration-200 hover:-translate-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-brand-600 uppercase tracking-wider">Completed</span>
-              <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+              <span className="text-xs font-semibold text-[#8B5CF6] uppercase tracking-wider">
+                Completed
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-purple-950/50 border border-purple-500/30 text-[#8B5CF6] flex items-center justify-center shadow-inner">
                 <CheckCircle className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-brand-600 mt-3">{stats.completed}</p>
-            <p className="text-xs text-slate-400 mt-1">Triggered destinations</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-[#8B5CF6] mt-3 tracking-tight">
+              {stats.completed}
+            </p>
+            <p className="text-xs text-[#94A3B8] mt-1">Triggered destinations</p>
           </div>
         </div>
 
-        {/* Saved Alarms List */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Saved Alarms Overview Section */}
+        <div className="bg-[#151C2E] rounded-3xl border border-[#2A364F] shadow-xl shadow-black/20 overflow-hidden">
+          {/* Section Header */}
+          <div className="p-6 border-b border-[#2A364F] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-navy-950">Your Saved Location Alarms</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className="text-lg font-bold text-[#F8FAFC] tracking-tight">
+                Your Saved Location Alarms
+              </h2>
+              <p className="text-xs text-[#94A3B8] mt-0.5">
                 Alarms saved to your account. Active alarms are continuously tracked while the tab is open.
               </p>
             </div>
 
             <div className="flex items-center space-x-3 text-xs">
-              <span className="font-medium text-slate-500">
+              <span className="font-medium text-[#94A3B8] bg-[#1E273E] px-3 py-1 rounded-full border border-[#2A364F]">
                 Showing {alarms.length} {alarms.length === 1 ? 'alarm' : 'alarms'}
               </span>
               <Link
                 to="/alarms"
-                className="font-bold text-brand-600 hover:text-brand-700 hover:underline flex items-center"
+                className="font-bold text-[#3B82F6] hover:text-[#8B5CF6] transition-colors flex items-center"
               >
                 <span>Manage All</span>
                 <ExternalLink className="w-3.5 h-3.5 ml-1" />
@@ -266,64 +264,71 @@ export const DashboardPage = () => {
             </div>
           </div>
 
+          {/* Section Body */}
           {isLoading ? (
-            <div className="py-16 text-center">
-              <div className="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm font-medium text-slate-600">Loading your saved alarms...</p>
+            <div className="py-16 text-center space-y-3">
+              <div className="w-10 h-10 border-4 border-purple-500/20 border-t-[#3B82F6] border-r-[#8B5CF6] rounded-full animate-spin mx-auto"></div>
+              <p className="text-sm font-medium text-[#94A3B8]">Loading your saved alarms...</p>
             </div>
           ) : alarms.length === 0 ? (
             <div className="py-16 px-4 text-center max-w-md mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto shadow-sm">
-                <MapPin className="w-7 h-7" />
+              <div className="w-16 h-16 rounded-2xl bg-[#1E273E] border border-[#2A364F] text-[#3B82F6] flex items-center justify-center mx-auto shadow-inner">
+                <MapPin className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-navy-950">No alarms set yet</h3>
-              <p className="text-sm text-slate-500">
-                You haven't created any location-based alarms yet. Add your first stop to stay alert during your commute.
+              <h3 className="text-lg font-bold text-[#F8FAFC]">No alarms set yet</h3>
+              <p className="text-sm text-[#94A3B8] leading-relaxed">
+                You haven't created any location-based alarms yet. Add your first destination to stay alert during your commute.
               </p>
               <Link
                 to="/alarms/create"
-                className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition-colors"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:from-blue-500 hover:to-purple-500 rounded-xl shadow-md shadow-blue-500/20 transition-all hover:scale-105"
               >
                 <Plus className="w-4 h-4 mr-1.5" />
                 <span>Create Your First Alarm</span>
               </Link>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-[#2A364F]/60">
               {alarms.map((alarm) => (
-                <div key={alarm._id} className="p-5 sm:p-6 hover:bg-slate-50/70 transition-colors">
+                <div
+                  key={alarm._id}
+                  className="p-5 sm:p-6 hover:bg-[#1E273E]/40 transition-colors duration-150"
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* Alarm Info */}
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h4 className="text-base font-bold text-navy-950">{alarm.name}</h4>
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center space-x-2.5">
+                        <h4 className="text-base font-bold text-[#F8FAFC] tracking-tight">
+                          {alarm.name}
+                        </h4>
                         <span
-                          className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                             alarm.status === 'active'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 shadow-[0_0_8px_rgba(34,197,94,0.15)]'
                               : alarm.status === 'paused'
-                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                              : 'bg-brand-100 text-brand-800 border border-brand-200'
+                              ? 'bg-amber-950/60 text-amber-400 border border-amber-500/40'
+                              : 'bg-purple-950/60 text-[#8B5CF6] border border-purple-500/40'
                           }`}
                         >
                           {alarm.status}
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-600 flex items-center">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 mr-1 flex-shrink-0" />
+                      <p className="text-xs text-[#94A3B8] flex items-center">
+                        <MapPin className="w-3.5 h-3.5 text-[#3B82F6] mr-1.5 flex-shrink-0" />
                         <span className="truncate">{alarm.destinationName}</span>
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
-                        <span className="inline-flex items-center font-medium bg-slate-100 px-2 py-0.5 rounded">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-[#94A3B8] pt-1">
+                        <span className="inline-flex items-center font-medium bg-[#1E273E] border border-[#2A364F] px-2.5 py-0.5 rounded-lg text-slate-200">
                           Radius: {alarm.radius >= 1000 ? `${alarm.radius / 1000} km` : `${alarm.radius}m`}
                         </span>
-                        <span>
+                        <span className="font-mono text-[11px] text-[#94A3B8] bg-[#0B1020]/70 px-2 py-0.5 rounded border border-[#2A364F]/60">
                           Lat: {alarm.latitude.toFixed(4)}, Lon: {alarm.longitude.toFixed(4)}
                         </span>
                         {alarm.triggeredAt && (
-                          <span className="text-brand-600 font-medium">
+                          <span className="text-[#8B5CF6] font-medium flex items-center bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/20">
+                            <Clock className="w-3 h-3 mr-1" />
                             Arrived at {new Date(alarm.triggeredAt).toLocaleTimeString()}
                           </span>
                         )}
@@ -334,10 +339,10 @@ export const DashboardPage = () => {
                     <div className="flex items-center space-x-2 self-end sm:self-center">
                       <button
                         onClick={() => handleStatusToggle(alarm._id, alarm.status)}
-                        className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all shadow-sm ${
                           alarm.status === 'active'
-                            ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
-                            : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                            ? 'border-amber-500/40 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 hover:border-amber-400'
+                            : 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 hover:border-emerald-400'
                         }`}
                         title={alarm.status === 'active' ? 'Pause Alarm' : 'Resume Alarm'}
                       >
@@ -356,7 +361,7 @@ export const DashboardPage = () => {
 
                       <button
                         onClick={() => handleDelete(alarm._id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-950/40 hover:border hover:border-rose-500/30 transition-all"
                         title="Delete Alarm"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -369,6 +374,9 @@ export const DashboardPage = () => {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

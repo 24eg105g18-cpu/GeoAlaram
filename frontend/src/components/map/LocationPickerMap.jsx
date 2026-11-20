@@ -22,10 +22,10 @@ const destinationIcon = L.divIcon({
       justify-content: center;
       transform: translate(-50%, -100%);
     ">
-      <svg width="36" height="42" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
-        <path d="M12 0C5.372 0 0 5.372 0 12C0 19.5 10.5 27.2 11.4 27.8C11.6 27.9 11.8 28 12 28C12.2 28 12.4 27.9 12.6 27.8C13.5 27.2 24 19.5 24 12C24 5.372 18.628 0 12 0Z" fill="#2563eb"/>
-        <circle cx="12" cy="11" r="5" fill="white"/>
-        <circle cx="12" cy="11" r="2.5" fill="#1e3a8a"/>
+      <svg width="36" height="42" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+        <path d="M12 0C5.372 0 0 5.372 0 12C0 19.5 10.5 27.2 11.4 27.8C11.6 27.9 11.8 28 12 28C12.2 28 12.4 27.9 12.6 27.8C13.5 27.2 24 19.5 24 12C24 5.372 18.628 0 12 0Z" fill="#3B82F6"/>
+        <circle cx="12" cy="11" r="5" fill="#F8FAFC"/>
+        <circle cx="12" cy="11" r="2.5" fill="#1E273E"/>
       </svg>
     </div>
   `,
@@ -40,9 +40,9 @@ const userLocationIcon = L.divIcon({
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #10b981;
-      border: 3px solid white;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.35);
+      background: #22C55E;
+      border: 3px solid #F8FAFC;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4);
       transform: translate(-50%, -50%);
     "></div>
   `,
@@ -95,7 +95,7 @@ export const LocationPickerMap = ({
   }, [destinationLat, destinationLng, userLat, userLng]);
 
   return (
-    <div className="relative w-full h-full min-h-[420px] rounded-2xl overflow-hidden shadow-inner border border-slate-200">
+    <div className="relative w-full h-full min-h-[420px] rounded-2xl overflow-hidden shadow-inner border border-[#2A364F]">
       <MapContainer
         center={defaultCenter}
         zoom={zoom}
@@ -143,9 +143,9 @@ export const LocationPickerMap = ({
               center={[destinationLat, destinationLng]}
               radius={radius}
               pathOptions={{
-                color: '#2563eb',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.18,
+                color: '#3B82F6',
+                fillColor: '#8B5CF6',
+                fillOpacity: 0.22,
                 weight: 2,
                 dashArray: '4, 6',
               }}
@@ -155,19 +155,19 @@ export const LocationPickerMap = ({
       </MapContainer>
 
       {/* Floating Map Legend Pill */}
-      <div className="absolute bottom-4 left-4 z-[400] bg-white/95 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-md text-[11px] text-slate-700 space-y-1">
+      <div className="absolute bottom-4 left-4 z-[400] bg-[#151C2E]/90 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-[#2A364F] shadow-xl text-[11px] text-[#F8FAFC] space-y-1.5 pointer-events-auto">
         <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
-          <span className="font-medium">Destination Pin (Click / Drag to set)</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]"></span>
+          <span className="font-medium text-slate-200">Destination Pin (Click / Drag to set)</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full border border-brand-500 bg-brand-200"></span>
-          <span>Alert Radius ({radius >= 1000 ? `${radius / 1000} km` : `${radius}m`})</span>
+          <span className="w-2.5 h-2.5 rounded-full border border-[#8B5CF6] bg-[#8B5CF6]/40"></span>
+          <span className="text-slate-300">Alert Radius ({radius >= 1000 ? `${radius / 1000} km` : `${radius}m`})</span>
         </div>
         {userLat && (
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span>Your Current Location</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22C55E]"></span>
+            <span className="text-slate-300">Your Current Location</span>
           </div>
         )}
       </div>

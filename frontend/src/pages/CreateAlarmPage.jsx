@@ -14,6 +14,7 @@ import {
   Compass,
 } from 'lucide-react';
 import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 import LocationPickerMap from '../components/map/LocationPickerMap';
 import { alarmService } from '../services/alarmService';
 import { geocodingService } from '../services/geocodingService';
@@ -206,23 +207,24 @@ export const CreateAlarmPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#0B1020] text-[#F8FAFC] flex flex-col font-sans selection:bg-[#3B82F6] selection:text-white">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-          <div>
-            <div className="flex items-center space-x-2 text-xs font-semibold text-brand-600 uppercase tracking-wider mb-1">
-              <Link to="/dashboard" className="inline-flex items-center hover:underline">
-                <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                Back to Dashboard
-              </Link>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-950">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2A364F]">
+          <div className="space-y-1">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center text-xs font-semibold text-[#3B82F6] hover:text-[#8B5CF6] transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+              Back to Dashboard
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFC] tracking-tight">
               Create Location Alarm
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-[#94A3B8]">
               Drop a pin on your destination and choose how far in advance you want to be alerted.
             </p>
           </div>
@@ -231,10 +233,10 @@ export const CreateAlarmPage = () => {
             <button
               type="button"
               onClick={playAlarmTone}
-              className="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors shadow-sm"
+              className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-[#151C2E] border border-[#2A364F] text-[#F8FAFC] hover:bg-[#1E273E] hover:border-[#3B82F6]/50 transition-all shadow-sm"
               title="Test Web Audio Chime"
             >
-              <Volume2 className="w-4 h-4 mr-1.5 text-brand-600" />
+              <Volume2 className="w-4 h-4 mr-1.5 text-[#3B82F6]" />
               <span>Test Alarm Tone</span>
             </button>
           </div>
@@ -242,22 +244,22 @@ export const CreateAlarmPage = () => {
 
         {/* Alerts */}
         {formSuccess && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center space-x-2">
-            <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <div className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-sm flex items-center space-x-2.5 shadow-sm animate-fadeIn">
+            <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span className="font-medium">{formSuccess}</span>
           </div>
         )}
 
         {formError && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          <div className="p-4 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-sm flex items-center space-x-2.5 shadow-sm">
+            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
             <span className="font-medium">{formError}</span>
           </div>
         )}
 
         {locationError && (
-          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center space-x-2">
-            <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <div className="p-3.5 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-300 text-xs flex items-center space-x-2.5 shadow-sm">
+            <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <span>{locationError}</span>
           </div>
         )}
@@ -265,19 +267,19 @@ export const CreateAlarmPage = () => {
         {/* 2-Column Responsive Form & Map Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Form Inputs (5 cols on large screens) */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div className="lg:col-span-5 bg-[#151C2E] p-6 sm:p-7 rounded-3xl border border-[#2A364F] shadow-xl shadow-black/25 space-y-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Destination Search */}
               <div className="relative">
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-2">
                   1. Search Destination Address
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     {isSearching ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-600" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#3B82F6]" />
                     ) : (
-                      <Search className="w-4 h-4" />
+                      <Search className="w-4 h-4 text-slate-400" />
                     )}
                   </div>
                   <input
@@ -285,22 +287,22 @@ export const CreateAlarmPage = () => {
                     value={searchQuery}
                     onChange={handleSearchChange}
                     placeholder="Search train station, bus stop, landmark..."
-                    className="block w-full pl-10 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    className="block w-full pl-10 pr-3 py-2.5 text-sm bg-[#0B1020]/80 border border-[#2A364F] rounded-xl text-[#F8FAFC] placeholder-slate-500 focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#8B5CF6]/25 transition-all"
                   />
                 </div>
 
                 {/* Autocomplete Dropdown */}
                 {searchResults.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-slate-200 max-h-60 overflow-y-auto divide-y divide-slate-100">
+                  <div className="absolute z-50 mt-1.5 w-full bg-[#1E273E] rounded-xl shadow-2xl border border-[#2A364F] max-h-60 overflow-y-auto divide-y divide-[#2A364F]/50">
                     {searchResults.map((item) => (
                       <button
                         key={item.placeId}
                         type="button"
                         onClick={() => handleSelectSearchResult(item)}
-                        className="w-full text-left px-3.5 py-2.5 hover:bg-brand-50 text-xs text-slate-700 flex items-start space-x-2 transition-colors"
+                        className="w-full text-left px-3.5 py-2.5 hover:bg-[#2A364F]/60 text-xs text-[#F8FAFC] flex items-start space-x-2.5 transition-colors"
                       >
-                        <MapPin className="w-4 h-4 text-brand-600 flex-shrink-0 mt-0.5" />
-                        <span className="truncate">{item.displayName}</span>
+                        <MapPin className="w-4 h-4 text-[#3B82F6] flex-shrink-0 mt-0.5" />
+                        <span className="truncate text-slate-200">{item.displayName}</span>
                       </button>
                     ))}
                   </div>
@@ -313,16 +315,16 @@ export const CreateAlarmPage = () => {
                   type="button"
                   onClick={handleGetCurrentLocation}
                   disabled={isLocating}
-                  className="w-full flex items-center justify-center py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors"
+                  className="w-full flex items-center justify-center py-2.5 px-3 rounded-xl border border-[#2A364F] bg-[#1E273E]/70 hover:bg-[#1E273E] text-xs font-semibold text-[#F8FAFC] hover:border-[#3B82F6]/50 transition-all shadow-sm disabled:opacity-50"
                 >
                   {isLocating ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-600" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-[#3B82F6]" />
                       <span>Reading GPS Coordinates...</span>
                     </>
                   ) : (
                     <>
-                      <Navigation className="w-4 h-4 mr-2 text-brand-600" />
+                      <Navigation className="w-4 h-4 mr-2 text-[#3B82F6]" />
                       <span>Use My Current Location</span>
                     </>
                   )}
@@ -330,25 +332,26 @@ export const CreateAlarmPage = () => {
               </div>
 
               {/* Destination Coordinates Summary Pill */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-                <span className="text-slate-500 font-semibold block uppercase text-[10px]">
+              <div className="p-3.5 bg-[#0B1020]/70 rounded-xl border border-[#2A364F] text-xs space-y-1.5">
+                <span className="text-[#94A3B8] font-semibold block uppercase text-[10px] tracking-wider">
                   Selected Coordinates
                 </span>
-                <div className="font-mono text-slate-800 text-[11px] flex justify-between">
+                <div className="font-mono text-slate-300 text-[11px] flex justify-between">
                   <span>Lat: {latitude ? latitude.toFixed(5) : '—'}</span>
                   <span>Lon: {longitude ? longitude.toFixed(5) : '—'}</span>
                 </div>
-                <p className="text-slate-600 text-[11px] truncate pt-0.5" title={destinationName}>
-                  <strong>Address:</strong> {destinationName || 'Click anywhere on map to drop pin'}
+                <p className="text-[#94A3B8] text-[11px] truncate pt-0.5" title={destinationName}>
+                  <strong className="text-slate-300 font-medium">Address:</strong>{' '}
+                  {destinationName || 'Click anywhere on map to drop pin'}
                 </p>
               </div>
 
               {/* Alarm Radius Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-2">
                   2. Choose Wake-Up Radius
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {radiusOptions.map((opt) => (
                     <button
                       key={opt.value}
@@ -356,15 +359,15 @@ export const CreateAlarmPage = () => {
                       onClick={() => setRadius(opt.value)}
                       className={`p-3 rounded-xl border text-left transition-all ${
                         radius === opt.value
-                          ? 'border-brand-600 bg-brand-50/80 text-brand-900 ring-2 ring-brand-500/20'
-                          : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                          ? 'border-[#3B82F6] bg-gradient-to-br from-[#3B82F6]/15 to-[#8B5CF6]/15 text-[#F8FAFC] ring-2 ring-[#3B82F6]/30 shadow-md shadow-blue-500/10'
+                          : 'border-[#2A364F] bg-[#0B1020]/60 hover:bg-[#1E273E] text-slate-300 hover:border-slate-600'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm">{opt.label}</span>
-                        {radius === opt.value && <Check className="w-4 h-4 text-brand-600" />}
+                        <span className="font-bold text-sm text-[#F8FAFC]">{opt.label}</span>
+                        {radius === opt.value && <Check className="w-4 h-4 text-[#3B82F6]" />}
                       </div>
-                      <span className="text-[11px] text-slate-500 block mt-0.5">{opt.desc}</span>
+                      <span className="text-[11px] text-[#94A3B8] block mt-0.5">{opt.desc}</span>
                     </button>
                   ))}
                 </div>
@@ -372,7 +375,7 @@ export const CreateAlarmPage = () => {
 
               {/* Alarm Name Input */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-1.5">
                   3. Alarm Name
                 </label>
                 <div className="relative rounded-xl shadow-sm">
@@ -385,14 +388,14 @@ export const CreateAlarmPage = () => {
                     value={alarmName}
                     onChange={(e) => setAlarmName(e.target.value)}
                     placeholder="e.g. Central Metro Station Exit"
-                    className="block w-full pl-10 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    className="block w-full pl-10 pr-3 py-2.5 text-sm bg-[#0B1020]/80 border border-[#2A364F] rounded-xl text-[#F8FAFC] placeholder-slate-500 focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#8B5CF6]/25 transition-all"
                   />
                 </div>
               </div>
 
               {/* Optional Travel Notes */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-1.5">
                   Travel Notes (Optional)
                 </label>
                 <textarea
@@ -400,7 +403,7 @@ export const CreateAlarmPage = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g., Change to Blue Line, prepare luggage at platform..."
-                  className="block w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="block w-full p-3 text-xs bg-[#0B1020]/80 border border-[#2A364F] rounded-xl text-[#F8FAFC] placeholder-slate-500 focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#8B5CF6]/25 transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -409,7 +412,7 @@ export const CreateAlarmPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-60 transition-all duration-150"
+                  className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:from-blue-500 hover:to-purple-500 shadow-lg shadow-blue-500/25 hover:shadow-purple-500/30 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -428,19 +431,19 @@ export const CreateAlarmPage = () => {
           </div>
 
           {/* Right Column: Interactive Leaflet Map (7 cols on large screens) */}
-          <div className="lg:col-span-7 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-600 px-1">
-              <span className="font-semibold text-slate-800 flex items-center">
-                <Compass className="w-4 h-4 mr-1.5 text-brand-600" />
+          <div className="lg:col-span-7 bg-[#151C2E] p-4 sm:p-5 rounded-3xl border border-[#2A364F] shadow-xl shadow-black/25 flex flex-col space-y-3">
+            <div className="flex items-center justify-between text-xs px-1">
+              <span className="font-semibold text-[#F8FAFC] flex items-center">
+                <Compass className="w-4 h-4 mr-1.5 text-[#3B82F6]" />
                 Interactive OpenStreetMap
               </span>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-[#94A3B8]">
                 Click anywhere to set destination or drag the pin
               </span>
             </div>
 
             {/* Map Canvas */}
-            <div className="w-full h-[540px]">
+            <div className="w-full h-[540px] rounded-2xl overflow-hidden border border-[#2A364F]">
               <LocationPickerMap
                 destinationLat={latitude}
                 destinationLng={longitude}
@@ -453,6 +456,8 @@ export const CreateAlarmPage = () => {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 };

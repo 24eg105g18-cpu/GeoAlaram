@@ -8,6 +8,15 @@ const TrackingContext = createContext(null);
 // Exactly 5 minutes in milliseconds (300,000 ms)
 const SNOOZE_DURATION_MS = 5 * 60 * 1000;
 
+// Geolocation options for high accuracy, fresh hardware fixes, and robust timeout (Requirements 2 & 4)
+const GEOLOCATION_OPTIONS = {
+  enableHighAccuracy: true,
+  maximumAge: 0,
+  timeout: 30000,
+};
+
+const MAX_RESTART_ATTEMPTS = 5;
+
 export const TrackingProvider = ({ children }) => {
   const [isTracking, setIsTracking] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null); // { latitude, longitude, accuracy, timestamp }
@@ -38,6 +47,13 @@ export const TrackingProvider = ({ children }) => {
   const isTrackingRef = useRef(false);
   const currentLocationRef = useRef(null);
   const processLocationUpdateRef = useRef(null);
+  const restartWatcherRef = useRef(null);
+
+  // GPS Timeout Recovery & Stability Refs (Requirement 3 & 5)
+  const consecutiveTimeoutsRef = useRef(0);
+  const restartAttemptsRef = useRef(0);
+  const watchRecoveryTimerRef = useRef(null);
+  const transientEmptyTimerRef = useRef(null);
 
   // Keep refs synchronized with React state
   useEffect(() => {
@@ -233,6 +249,20 @@ export const TrackingProvider = ({ children }) => {
    * @param {boolean} isManual - true if initiated by user click; false if auto-stopped (0 alarms)
    */
   const stopTracking = useCallback((isManual = true) => {
+    isTrackingRef.current = false;
+
+    // Clear any pending recovery or transient empty timers (Requirement 3 & 5)
+    if (watchRecoveryTimerRef.current) {
+      clearTimeout(watchRecoveryTimerRef.current);
+      watchRecoveryTimerRef.current = null;
+    }
+    if (transientEmptyTimerRef.current) {
+      clearTimeout(transientEmptyTimerRef.current);
+      transientEmptyTimerRef.current = null;
+    }
+    consecutiveTimeoutsRef.current = 0;
+    restartAttemptsRef.current = 0;
+
     if (watchIdRef.current !== null) {
       if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -293,27 +323,41 @@ export const TrackingProvider = ({ children }) => {
    * Evaluate location coordinates against active alarms.
    * Requirement 2: Checks snooze expiry before triggering any alarm.
    * Requirement 7: If user exits geofence, handles re-entry cleanly without duplicate triggering while inside radius.
+   * Requirement 4: Preserves hardware GPS timestamp and safely validates accuracy.
    */
-  const processLocationUpdate = useCallback((lat, lon, accuracy, isSimulation = false) => {
+  const processLocationUpdate = useCallback((lat, lon, accuracy, isSimulation = false, timestamp = null) => {
     const numLat = Number(lat);
     const numLon = Number(lon);
 
-    if (!Number.isFinite(numLat) || !Number.isFinite(numLon)) {
+    if (!Number.isFinite(numLat) || !Number.isFinite(numLon) || numLat < -90 || numLat > 90 || numLon < -180 || numLon > 180) {
       console.warn('[GeoAlarm] Discarding invalid coordinates in processLocationUpdate:', { lat, lon });
       return;
     }
 
-    const coords = { latitude: numLat, longitude: numLon, accuracy, timestamp: Date.now() };
+    // Safely parse accuracy: accept any valid numeric accuracy without discarding low-accuracy fixes
+    const validAccuracy = typeof accuracy === 'number' && Number.isFinite(accuracy) && accuracy >= 0
+      ? accuracy
+      : (accuracy !== null && accuracy !== undefined && Number.isFinite(Number(accuracy)) ? Number(accuracy) : null);
+
+    // Hardware GPS timestamp or fallback to current wall-clock time (Requirement 4)
+    const validTimestamp = typeof timestamp === 'number' && Number.isFinite(timestamp) && timestamp > 0
+      ? timestamp
+      : Date.now();
+
+    const coords = {
+      latitude: numLat,
+      longitude: numLon,
+      accuracy: validAccuracy,
+      timestamp: validTimestamp,
+      simulated: isSimulation,
+    };
     setCurrentLocation(coords);
+    currentLocationRef.current = coords;
 
     const alarms = activeAlarmsRef.current;
     if (!alarms || alarms.length === 0) {
       setNearestAlarm(null);
-      if (isTracking) {
-        console.log('[GeoAlarm] No active alarms to track. Auto-stopping GPS monitoring...');
-        autoStoppedRef.current = true;
-        stopTracking(false);
-      }
+      // Requirement 5: Do not auto-stop GPS tracking during transient location updates when alarms are empty
       return;
     }
 
@@ -372,12 +416,125 @@ export const TrackingProvider = ({ children }) => {
     });
 
     setNearestAlarm(closest);
-  }, [triggerAlarm, isTracking, stopTracking, clearAlarmSnooze]);
+  }, [triggerAlarm, clearAlarmSnooze]);
 
-  // Keep fresh ref to processLocationUpdate for timer callbacks
+  // Synchronously and reactively keep fresh ref to processLocationUpdate (Requirement 1)
+  processLocationUpdateRef.current = processLocationUpdate;
   useEffect(() => {
     processLocationUpdateRef.current = processLocationUpdate;
   }, [processLocationUpdate]);
+
+  /**
+   * Geolocation position success handler.
+   * Requirement 1: Uses processLocationUpdateRef.current to prevent stale closures.
+   * Requirement 4: Forwards hardware position timestamp.
+   */
+  const handlePositionSuccess = useCallback((position) => {
+    // Reset consecutive timeouts & restart counters on any successful position fix
+    consecutiveTimeoutsRef.current = 0;
+    restartAttemptsRef.current = 0;
+    if (watchRecoveryTimerRef.current) {
+      clearTimeout(watchRecoveryTimerRef.current);
+      watchRecoveryTimerRef.current = null;
+    }
+
+    // If simulation is in progress, do not let real GPS overwrite it
+    if (Date.now() < simulationLockUntilRef.current) {
+      console.log('[GeoAlarm GPS] Real GPS event ignored while simulation alert is active.');
+      return;
+    }
+
+    const { latitude, longitude, accuracy } = position.coords;
+    const posTimestamp = position.timestamp || Date.now();
+    setTrackingError('');
+    processLocationUpdateRef.current?.(latitude, longitude, accuracy, false, posTimestamp);
+  }, []);
+
+  /**
+   * Geolocation error handler with safe timeout recovery.
+   * Requirement 3: Handles error.code === 3 (TIMEOUT) without permanently stalling tracking.
+   */
+  const handlePositionError = useCallback((error) => {
+    console.warn('[GeoAlarm] Geolocation watch error:', error?.message, `(code: ${error?.code})`);
+
+    if (error?.code === 1) {
+      setTrackingError('Location permission was denied. Please allow location access in your browser to enable tracking.');
+      stopTracking(true);
+      return;
+    }
+
+    if (error?.code === 2) {
+      setTrackingError('GPS position unavailable. Searching for satellite/network signal...');
+      return;
+    }
+
+    if (error?.code === 3) {
+      // Timeout code: do not assume the browser permanently stopped the watcher on the first timeout
+      consecutiveTimeoutsRef.current += 1;
+      setTrackingError('GPS signal timed out. Retrying in background...');
+      console.log(`[GeoAlarm] Geolocation timeout #${consecutiveTimeoutsRef.current}`);
+
+      // If 2 or more consecutive timeouts occur, the browser's position provider may be stalled.
+      // Schedule a controlled restart if tracking is still intended.
+      if (consecutiveTimeoutsRef.current >= 2 && isTrackingRef.current) {
+        if (restartAttemptsRef.current < MAX_RESTART_ATTEMPTS) {
+          if (!watchRecoveryTimerRef.current) {
+            const backoffDelay = Math.min(2000 * Math.pow(1.5, restartAttemptsRef.current), 10000);
+            console.log(`[GeoAlarm] Scheduling controlled watcher restart in ${backoffDelay}ms (Attempt ${restartAttemptsRef.current + 1}/${MAX_RESTART_ATTEMPTS})...`);
+            watchRecoveryTimerRef.current = setTimeout(() => {
+              watchRecoveryTimerRef.current = null;
+              if (!isTrackingRef.current) return;
+              restartAttemptsRef.current += 1;
+              restartWatcherRef.current?.();
+            }, backoffDelay);
+          }
+        } else {
+          console.warn('[GeoAlarm] Maximum GPS restart attempts reached. Awaiting signal recovery.');
+          setTrackingError('Weak GPS signal. Please move to an open area with clear sky view.');
+        }
+      }
+    }
+  }, [stopTracking]);
+
+  /**
+   * Controlled watcher restart for stalled geolocation providers.
+   * Requirement 3: Prevents multiple simultaneous watchers by always clearing the previous watch first.
+   */
+  const restartWatcher = useCallback(() => {
+    if (!isTrackingRef.current) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
+
+    console.log('[GeoAlarm] Executing controlled GPS watcher restart...');
+
+    // 1. Cleanly clear existing watcher
+    if (watchIdRef.current !== null) {
+      try {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      } catch (e) {
+        console.warn('[GeoAlarm] Error clearing prior watch during restart:', e);
+      }
+      watchIdRef.current = null;
+    }
+
+    // 2. Start fresh watcher
+    try {
+      const watchId = navigator.geolocation.watchPosition(
+        handlePositionSuccess,
+        handlePositionError,
+        GEOLOCATION_OPTIONS
+      );
+      watchIdRef.current = watchId;
+      console.log(`[GeoAlarm] Controlled restart succeeded (New Watch ID: ${watchId}).`);
+    } catch (err) {
+      console.error('[GeoAlarm] Failed to restart GPS watcher:', err);
+      setTrackingError('Failed to restart GPS: ' + err.message);
+    }
+  }, [handlePositionSuccess, handlePositionError]);
+
+  restartWatcherRef.current = restartWatcher;
+  useEffect(() => {
+    restartWatcherRef.current = restartWatcher;
+  }, [restartWatcher]);
 
   /**
    * Start continuous location monitoring.
@@ -422,38 +579,22 @@ export const TrackingProvider = ({ children }) => {
       watchIdRef.current = null;
     }
 
+    // Clear any pending recovery mechanism
+    if (watchRecoveryTimerRef.current) {
+      clearTimeout(watchRecoveryTimerRef.current);
+      watchRecoveryTimerRef.current = null;
+    }
+    consecutiveTimeoutsRef.current = 0;
+    restartAttemptsRef.current = 0;
     autoStoppedRef.current = false;
+    isTrackingRef.current = true;
 
-    // Start watchPosition
+    // Start watchPosition with high accuracy and 30s timeout (Requirement 2)
     try {
       const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          // If simulation is in progress, do not let real GPS overwrite it
-          if (Date.now() < simulationLockUntilRef.current) {
-            console.log('[GeoAlarm GPS] Real GPS event ignored while simulation alert is active.');
-            return;
-          }
-
-          const { latitude, longitude, accuracy } = position.coords;
-          setTrackingError('');
-          processLocationUpdate(latitude, longitude, accuracy, false);
-        },
-        (error) => {
-          console.warn('[GeoAlarm] Geolocation watch error:', error.message);
-          if (error.code === 1) {
-            setTrackingError('Location permission was denied. Please allow location access in your browser to enable tracking.');
-            stopTracking(true);
-          } else if (error.code === 2) {
-            setTrackingError('GPS position unavailable. Retrying in foreground...');
-          } else if (error.code === 3) {
-            setTrackingError('GPS signal timed out. Retrying in foreground...');
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 4000,
-          timeout: 15000,
-        }
+        handlePositionSuccess,
+        handlePositionError,
+        GEOLOCATION_OPTIONS
       );
 
       watchIdRef.current = watchId;
@@ -462,16 +603,43 @@ export const TrackingProvider = ({ children }) => {
     } catch (err) {
       setTrackingError('Failed to initiate GPS monitoring: ' + err.message);
       setIsTracking(false);
+      isTrackingRef.current = false;
     }
-  }, [requestNotificationPermission, isTracking, processLocationUpdate, stopTracking]);
+  }, [requestNotificationPermission, isTracking, handlePositionSuccess, handlePositionError]);
 
   /**
    * Synchronize active alarms with the latest alarm list from Dashboard/MyAlarms.
    * Requirement 3: syncAlarms must NEVER clear trigger locks for alarms currently in their snooze window.
    * Requirement 8: Clears snooze timers and records for any alarms no longer active (paused, completed, deleted).
+   * Requirement 5: Guards against transient empty alarm lists during loading / refresh operations.
    */
   const syncAlarms = useCallback((allAlarms = []) => {
     if (!Array.isArray(allAlarms)) return;
+
+    // Requirement 5: If allAlarms is empty while tracking is active and we already have active alarms tracked,
+    // this is a transient loading or refresh state (e.g. DashboardPage fetchAlarms in progress).
+    // Do NOT wipe out existing active alarms or kill GPS tracking.
+    if (allAlarms.length === 0 && isTrackingRef.current && activeAlarmsRef.current.length > 0) {
+      console.log('[GeoAlarm Sync] Transient empty alarm list received while actively tracking. Scheduling verification...');
+      if (!transientEmptyTimerRef.current) {
+        transientEmptyTimerRef.current = setTimeout(() => {
+          transientEmptyTimerRef.current = null;
+          // If still tracking and active alarms list is now genuinely empty, auto-stop
+          if (isTrackingRef.current && activeAlarmsRef.current.length === 0) {
+            console.log('[GeoAlarm Sync] Verified no active alarms remaining. Auto-stopping GPS monitoring...');
+            autoStoppedRef.current = true;
+            stopTracking(false);
+          }
+        }, 1200);
+      }
+      return;
+    }
+
+    // A real alarms array arrived: clear any pending transient check timer
+    if (transientEmptyTimerRef.current) {
+      clearTimeout(transientEmptyTimerRef.current);
+      transientEmptyTimerRef.current = null;
+    }
 
     const filtered = allAlarms.filter((a) => a && a.status === 'active');
     setActiveAlarms(filtered);
@@ -513,7 +681,8 @@ export const TrackingProvider = ({ children }) => {
       console.log(`[GeoAlarm Sync] Auto-restarting GPS monitoring for ${filtered.length} active alarm(s)...`);
       autoStoppedRef.current = false;
       startTracking(filtered);
-    } else if (filtered.length === 0 && isTracking) {
+    } else if (allAlarms.length > 0 && filtered.length === 0 && isTracking) {
+      // Genuinely 0 active alarms (e.g. user paused all alarms or all are completed)
       console.log('[GeoAlarm Sync] No active alarms remaining in list. Auto-stopping GPS monitoring...');
       autoStoppedRef.current = true;
       stopTracking(false);
@@ -741,11 +910,22 @@ export const TrackingProvider = ({ children }) => {
     processLocationUpdate(lat, lon, accuracy, true);
   };
 
-  // Cleanup watchPosition, active notification, and all snooze timers on unmount (Requirement 8)
+  // Cleanup watchPosition, recovery timers, active notification, and all snooze timers on unmount (Requirement 3 & 8)
   useEffect(() => {
     return () => {
+      if (watchRecoveryTimerRef.current) {
+        clearTimeout(watchRecoveryTimerRef.current);
+        watchRecoveryTimerRef.current = null;
+      }
+      if (transientEmptyTimerRef.current) {
+        clearTimeout(transientEmptyTimerRef.current);
+        transientEmptyTimerRef.current = null;
+      }
       if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
+        watchIdRef.current = null;
       }
       stopAlarmSound();
       if (activeNotificationRef.current) {
